@@ -5,6 +5,7 @@ namespace Maximaster\ProductionCalendar;
 use DateInterval;
 use DateTime;
 use Exception;
+use Maximaster\ProductionCalendar\RulesProvider\OfflineWeekendProvider;
 use Maximaster\ProductionCalendar\RulesProvider\ProviderInterface;
 
 class Calendar
@@ -18,6 +19,11 @@ class Calendar
      * @var string
      */
     protected $innerFormat = 'd.m.Y';
+
+    /**
+     * @var bool
+     */
+    protected $isOfflineProvider = false;
 
     public function __construct(Rules $rules)
     {
@@ -199,8 +205,35 @@ class Calendar
         return $this->getMonthDaysCount(Rules::$WORK, $year, $month);
     }
 
-    public static function fromProvider(ProviderInterface $provider)
+    /**
+     * @return bool
+     */
+    public function isOfflineProvider()
     {
-        return new self($provider->get());
+        return $this->isOfflineProvider;
+    }
+
+    /**
+     * @param ProviderInterface $provider
+     * @param ProviderInterface[] $fallback
+     * @return Calendar
+     * @throws Exception
+     */
+    public static function fromProvider(ProviderInterface $provider, array $fallback = [])
+    {
+        $err = PHP_EOL;
+        array_unshift($fallback, $provider);
+
+        foreach ($fallback as $fb) {
+            try {
+                $ca = new self($fb->get());
+                $ca->isOfflineProvider = $fb instanceof OfflineWeekendProvider;
+                return $ca;
+            } catch (Exception $e) {
+                $err .= $e->getMessage() . PHP_EOL;
+            }
+        }
+
+        throw new Exception('Can not load provider ' . $err);
     }
 }

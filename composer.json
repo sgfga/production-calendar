@@ -10,8 +10,9 @@
 	],
 	"require": {
 		"php": ">=5.4",
-		"ext-curl": "@stable"
-	},
+		"ext-curl": "@stable",
+		"ext-simplexml": "*"
+    },
 	"suggest": {
 		"desarrolla2/cache": "Для кеширования результатов с помощью RulesProvider/CacheProvider"
 	},
